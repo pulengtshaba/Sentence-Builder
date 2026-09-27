@@ -1,12 +1,10 @@
 services:
-
   api:
     build:
       context: ./server
 
     ports:
       - "3000:3000"
-
 
   web:
     build:
