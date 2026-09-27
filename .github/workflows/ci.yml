@@ -67,7 +67,7 @@ jobs:
         run: npm ci
 
       - name: Run frontend tests
-          npm test -- --no-watch --no-progress --headless
+        run: npm test -- --no-watch --no-progress --headless
 
       - name: Build frontend
         run: npm run build
