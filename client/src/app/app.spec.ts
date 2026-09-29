@@ -1,23 +1,78 @@
-import { TestBed } from '@angular/core/testing';
-import { App } from './app';
+import {
+  TestBed
+} from '@angular/core/testing';
 
-describe('App', () => {
+import {
+  provideRouter
+} from '@angular/router';
+
+import {
+  provideHttpClient
+} from '@angular/common/http';
+
+import {
+  AppComponent
+} from './app';
+
+import {
+  routes
+} from './app.routes';
+
+
+describe('AppComponent', () => {
+
   beforeEach(async () => {
+
     await TestBed.configureTestingModule({
-      imports: [App],
+
+      imports: [
+        AppComponent
+      ],
+
+      providers: [
+        provideRouter(routes),
+        provideHttpClient()
+      ]
+
     }).compileComponents();
+
   });
 
-  it('should create the app', () => {
-    const fixture = TestBed.createComponent(App);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
-  });
 
-  it('should render title', async () => {
-    const fixture = TestBed.createComponent(App);
-    await fixture.whenStable();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, client');
-  });
+  it(
+    'should create the app',
+    () => {
+
+      const fixture =
+        TestBed.createComponent(
+          AppComponent
+        );
+
+      const app =
+        fixture.componentInstance;
+
+      expect(app).toBeTruthy();
+
+    }
+  );
+
+
+  it(
+    'should have the correct title',
+    () => {
+
+      const fixture =
+        TestBed.createComponent(
+          AppComponent
+        );
+
+      const app =
+        fixture.componentInstance;
+
+      expect(app.title)
+        .toBe('Sentence Builder');
+
+    }
+  );
+
 });
