@@ -4,9 +4,9 @@ const { PrismaClient } = require('@prisma/client');
 const { PrismaMssql } = require('@prisma/adapter-mssql');
 
 const adapter = new PrismaMssql({
-    server: 'localhost',
+    server: process.env.DB_SERVER,
     port: 1433,
-    database: 'SentenceBuilder',
+    database: DB_NAME,
 
     authentication: {
         type: 'default',
@@ -17,7 +17,7 @@ const adapter = new PrismaMssql({
     },
 
     options: {
-        trustServerCertificate: true
+        trustServerCertificate: false
     }
 });
 
