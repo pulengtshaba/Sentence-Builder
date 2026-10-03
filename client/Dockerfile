@@ -9,8 +9,12 @@ RUN npm ci
 
 COPY . .
 
-RUN npm run build
+# Define the build-time variable
+ARG API_URL
 
+RUN sed -i "s|__API_URL__|${API_URL}|g" src/environments/environment.ts
+
+RUN npm run build
 
 # Runtime stage
 FROM nginx:alpine
@@ -20,3 +24,5 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist/client/browser /usr/share/nginx/html
 
 EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
