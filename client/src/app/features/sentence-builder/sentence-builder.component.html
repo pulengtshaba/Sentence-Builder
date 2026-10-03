@@ -64,19 +64,17 @@
 
   <section class="builder-section">
 
-    <h2>
-      1. Select a word type
-    </h2>
+  <h2>
+    1. Select a word type
+  </h2>
 
+  @if (wordTypes.length === 0) {
 
-    @if (!loading && wordTypes.length === 0) {
+    <p>
+      No word types are available.
+    </p>
 
-      <p>
-        No word types are available.
-      </p>
-
-    }
-
+  } @else {
 
     <div
       class="word-type-list"
@@ -103,8 +101,9 @@
 
     </div>
 
-  </section>
+  }
 
+</section>
 
   <section class="builder-section">
 

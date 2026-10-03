@@ -1,5 +1,6 @@
 import {
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   OnInit,
   inject
@@ -50,6 +51,8 @@ export class SavedSentencesComponent
   private readonly router =
     inject(Router);
 
+  private readonly changeDetectorRef =
+  inject(ChangeDetectorRef);
 
   sentences: Sentence[] = [];
 
@@ -64,7 +67,7 @@ export class SavedSentencesComponent
   }
 
 
-  loadSentences(): void {
+  /*loadSentences(): void {
 
     this.loading = true;
 
@@ -93,8 +96,54 @@ export class SavedSentencesComponent
         }
 
       });
-  }
+  }*/
 
+  loadSentences(): void {
+
+  this.loading = true;
+  this.errorMessage = '';
+
+  this.api
+    .getSentences()
+    .subscribe({
+
+      next: sentences => {
+
+        console.log(
+          'SAVED SENTENCES API RESPONSE:',
+          sentences
+        );
+
+        this.sentences =
+          sentences;
+
+        this.loading = false;
+
+        console.log(
+          'SAVED SENTENCES LENGTH:',
+          this.sentences.length
+        );
+
+        this.changeDetectorRef.markForCheck();
+      },
+
+      error: error => {
+
+        console.error(
+          'loadSentences() ERROR:',
+          error
+        );
+
+        this.loading = false;
+
+        this.errorMessage =
+          'Unable to load saved sentences.';
+
+        this.changeDetectorRef.markForCheck();
+      }
+
+    });
+}
 
   editSentence(
     id: number

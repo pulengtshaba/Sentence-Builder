@@ -1,5 +1,6 @@
 import {
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   OnInit,
   inject
@@ -52,6 +53,7 @@ import {
   changeDetection:
     ChangeDetectionStrategy.OnPush
 })
+
 export class SentenceBuilderComponent
   implements OnInit {
 
@@ -64,6 +66,9 @@ export class SentenceBuilderComponent
 
   private readonly router =
     inject(Router);
+
+  private readonly changeDetectorRef =
+  inject(ChangeDetectorRef);
 
 
   wordTypes: WordType[] = [];
@@ -94,6 +99,7 @@ export class SentenceBuilderComponent
 
 
   ngOnInit(): void {
+    console.log('SentenceBuilderComponent INITIALIZED');
 
     this.loadWordTypes();
 
@@ -119,7 +125,7 @@ export class SentenceBuilderComponent
   }
 
 
-  loadWordTypes(): void {
+  /*loadWordTypes(): void {
 
     this.loading = true;
 
@@ -147,10 +153,59 @@ export class SentenceBuilderComponent
         }
 
       });
-  }
+  }*/
+
+  /*loadWordTypes(): void {
+    console.log('loadWordTypes() STARTED');
+
+    this.api.getWordTypes().subscribe({
+        next: (wordTypes) => {
+            console.log('API RESPONSE:', wordTypes);
+
+            this.wordTypes = wordTypes;
+
+            console.log('wordTypes ASSIGNED:', this.wordTypes);
+            console.log('wordTypes LENGTH:', this.wordTypes.length);
+        },
+        error: (error) => {
+            console.error('loadWordTypes() ERROR:', error);
+        }
+    });
+}*/
+
+loadWordTypes(): void {
+  console.log('loadWordTypes() STARTED');
+
+  this.api.getWordTypes().subscribe({
+    next: (wordTypes) => {
+      console.log('API RESPONSE:', wordTypes);
+
+      this.wordTypes = wordTypes;
+
+      console.log(
+        'wordTypes ASSIGNED:',
+        this.wordTypes
+      );
+
+      console.log(
+        'wordTypes LENGTH:',
+        this.wordTypes.length
+      );
+
+      this.changeDetectorRef.markForCheck();
+    },
+
+    error: (error) => {
+      console.error(
+        'loadWordTypes() ERROR:',
+        error
+      );
+    }
+  });
+}
 
 
-  selectWordType(
+  /*selectWordType(
     wordType: WordType
   ): void {
 
@@ -158,10 +213,20 @@ export class SentenceBuilderComponent
       wordType;
 
     this.loadWords(wordType.id);
-  }
+  }*/
+ selectWordType(wordType: WordType): void {
+  console.log('WORD TYPE CLICKED:', wordType);
+
+  this.selectedWordType = wordType;
+  this.words = [];
+
+  this.loadWords(wordType.id);
+
+  this.changeDetectorRef.markForCheck();
+}
 
 
-  loadWords(
+  /*loadWords(
     typeId: number
   ): void {
 
@@ -191,8 +256,37 @@ export class SentenceBuilderComponent
         }
 
       });
-  }
+  }*/
+loadWords(typeId: number): void {
+  this.loadingWords = true;
+  this.errorMessage = '';
 
+  this.api
+    .getWordsByType(typeId)
+    .subscribe({
+      next: (words) => {
+        console.log('WORDS API RESPONSE:', words);
+
+        this.words = words;
+        this.loadingWords = false;
+
+        console.log('WORDS ASSIGNED:', this.words);
+        console.log('WORDS LENGTH:', this.words.length);
+
+        this.changeDetectorRef.markForCheck();
+      },
+
+      error: (error) => {
+        console.error('loadWords() ERROR:', error);
+
+        this.loadingWords = false;
+        this.errorMessage =
+          'Unable to load words.';
+
+        this.changeDetectorRef.markForCheck();
+      }
+    });
+}
 
   addWord(
     word: Word
@@ -295,6 +389,10 @@ export class SentenceBuilderComponent
 
             this.editingSentenceId =
               sentence.id;
+
+            this.changeDetectorRef.markForCheck();
+
+            this.router.navigate(['/sentences']);
           },
 
           error: error => {
@@ -305,6 +403,8 @@ export class SentenceBuilderComponent
 
             this.errorMessage =
               'Unable to save sentence.';
+
+            this.changeDetectorRef.markForCheck();
           }
 
         });
@@ -326,6 +426,10 @@ export class SentenceBuilderComponent
 
             this.successMessage =
               'Sentence updated successfully.';
+
+            this.changeDetectorRef.markForCheck();
+
+            this.router.navigate(['/sentences']);
           },
 
           error: error => {
@@ -336,6 +440,8 @@ export class SentenceBuilderComponent
 
             this.errorMessage =
               'Unable to update sentence.';
+
+            this.changeDetectorRef.markForCheck();
           }
 
         });
@@ -343,7 +449,7 @@ export class SentenceBuilderComponent
   }
 
 
-  loadSentence(
+  /*loadSentence(
     id: number
   ): void {
 
@@ -389,8 +495,54 @@ export class SentenceBuilderComponent
         }
 
       });
-  }
+  }*/
 
+      loadSentence(id: number): void {
+  this.loading = true;
+  this.errorMessage = '';
+
+  this.api
+    .getSentence(id)
+    .subscribe({
+      next: (sentence) => {
+        this.selectedWords =
+          sentence.words
+            .sort(
+              (a, b) =>
+                a.position - b.position
+            )
+            .map(word => ({
+              id: word.id,
+
+              text: word.text,
+
+              wordTypeId:
+                word.wordTypeId ?? 0,
+
+              wordTypeName:
+                word.wordTypeName
+            }));
+
+        this.loading = false;
+
+        this.changeDetectorRef.markForCheck();
+      },
+
+      error: (error) => {
+        console.error(
+          'loadSentence() ERROR:',
+          error
+        );
+
+        this.loading = false;
+
+        this.errorMessage =
+          'Unable to load sentence.';
+
+        this.changeDetectorRef.markForCheck();
+      }
+    });
+}
 
   viewSavedSentences(): void {
 
