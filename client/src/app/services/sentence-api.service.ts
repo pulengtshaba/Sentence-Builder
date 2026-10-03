@@ -24,7 +24,8 @@ export class SentenceApiService {
 
   private readonly http = inject(HttpClient);
 
-  private readonly apiUrl = environment.apiUrl;
+  /*private readonly apiUrl = environment.apiUrl;*/
+  private readonly apiUrl = `${environment.apiUrl}/api`;
 
 
   getWordTypes(): Observable<WordType[]> {
