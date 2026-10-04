@@ -35,6 +35,8 @@ jobs:
         run: npm ci
 
       - name: Generate Prisma Client
+        env:
+          DATABASE_URL: "sqlserver://localhost:1433;database=SentenceBuilder;user=sa;password=DummyPassword123!;encrypt=false;trustServerCertificate=true"
         run: npx prisma generate
 
       - name: Run backend tests
