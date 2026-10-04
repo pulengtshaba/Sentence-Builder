@@ -237,7 +237,8 @@ jobs:
             --retry 10 \
             --retry-delay 5 \
             --retry-connrefused \
-            "${API_URL}/health/live"
+            "${API_URL}/api/health/live"
+
 
       # ------------------------------------------------------------
       # 17. Get frontend URL
