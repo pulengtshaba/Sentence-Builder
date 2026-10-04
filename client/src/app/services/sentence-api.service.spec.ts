@@ -12,6 +12,14 @@ import {
 } from '@angular/common/http/testing';
 
 import {
+  describe,
+  beforeEach,
+  afterEach,
+  it,
+  expect
+} from 'vitest';
+
+import {
   SentenceApiService
 } from './sentence-api.service';
 
@@ -24,8 +32,7 @@ describe('SentenceApiService', () => {
 
   let service: SentenceApiService;
 
-  let httpMock:
-    HttpTestingController;
+  let httpMock: HttpTestingController;
 
 
   beforeEach(() => {
@@ -84,7 +91,7 @@ describe('SentenceApiService', () => {
 
       const request =
         httpMock.expectOne(
-          `${environment.apiUrl}/word-types`
+          `${environment.apiUrl}/api/word-types`
         );
 
 
@@ -125,7 +132,7 @@ describe('SentenceApiService', () => {
         httpMock.expectOne(
           req =>
             req.url ===
-              `${environment.apiUrl}/words`
+              `${environment.apiUrl}/api/words`
             &&
             req.params.get('typeId') === '1'
         );
@@ -170,7 +177,7 @@ describe('SentenceApiService', () => {
 
       const request =
         httpMock.expectOne(
-          `${environment.apiUrl}/sentences`
+          `${environment.apiUrl}/api/sentences`
         );
 
 
@@ -218,7 +225,7 @@ describe('SentenceApiService', () => {
 
       const request =
         httpMock.expectOne(
-          `${environment.apiUrl}/sentences/10`
+          `${environment.apiUrl}/api/sentences/10`
         );
 
 

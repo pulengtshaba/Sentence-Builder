@@ -3,7 +3,7 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-  "types": ["jest"] // or "jasmine"
+  "types": ["jasmine"]
 }
 ,
   "include": [

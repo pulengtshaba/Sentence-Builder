@@ -2,6 +2,34 @@ const sentenceService =
     require('../services/sentenceService');
 
 
+function validateSentenceId(rawId) {
+
+    const id =
+        Number(rawId);
+
+    if (
+        rawId === undefined
+        ||
+        !Number.isInteger(id)
+        ||
+        id <= 0
+    ) {
+
+        const error =
+            new Error(
+                'Sentence ID must be a positive integer.'
+            );
+
+        error.statusCode = 400;
+        error.isOperational = true;
+
+        throw error;
+    }
+
+    return id;
+}
+
+
 async function getSentences(req, res, next) {
 
     try {
@@ -10,7 +38,9 @@ async function getSentences(req, res, next) {
             await sentenceService
                 .getAllSentences();
 
-        res.status(200).json(sentences);
+        res
+            .status(200)
+            .json(sentences);
 
     } catch (error) {
 
@@ -24,13 +54,17 @@ async function getSentence(req, res, next) {
     try {
 
         const id =
-            Number(req.params.id);
+            validateSentenceId(
+                req.params.id
+            );
 
         const sentence =
             await sentenceService
                 .getSentenceById(id);
 
-        res.status(200).json(sentence);
+        res
+            .status(200)
+            .json(sentence);
 
     } catch (error) {
 
@@ -67,7 +101,9 @@ async function updateSentence(req, res, next) {
     try {
 
         const id =
-            Number(req.params.id);
+            validateSentenceId(
+                req.params.id
+            );
 
         const {
             wordIds
@@ -80,7 +116,9 @@ async function updateSentence(req, res, next) {
                     wordIds
                 );
 
-        res.status(200).json(sentence);
+        res
+            .status(200)
+            .json(sentence);
 
     } catch (error) {
 

@@ -21,6 +21,7 @@ const errorHandler =
 
 const app = express();
 
+
 app.use(
     cors({
         origin:
@@ -32,11 +33,31 @@ app.use(
 app.use(express.json());
 
 
+/*
+ * Liveness health check.
+ *
+ * Confirms that the API process is running.
+ */
+app.get('/api/health/live', (req, res) => {
+
+    res
+        .status(200)
+        .json({
+            status: 'healthy'
+        });
+});
+
+
+/*
+ * Existing API health endpoint.
+ */
 app.get('/api/health', (req, res) => {
 
-    res.status(200).json({
-        status: 'ok'
-    });
+    res
+        .status(200)
+        .json({
+            status: 'ok'
+        });
 });
 
 
