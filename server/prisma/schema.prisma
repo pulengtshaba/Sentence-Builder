@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+}
+
+model WordType {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  words Word[]
+}
+
+model Word {
+  id            Int            @id @default(autoincrement())
+  text          String
+  wordTypeId    Int
+  sentenceWords SentenceWord[]
+  wordType      WordType       @relation(fields: [wordTypeId], references: [id])
+
+  @@unique([text, wordTypeId])
+  @@index([wordTypeId])
+}
+
+model Sentence {
+  id            Int            @id @default(autoincrement())
+  createdAt     DateTime       @default(now())
+  sentenceWords SentenceWord[]
+
+  @@index([createdAt])
+}
+
+model SentenceWord {
+  id         Int      @id @default(autoincrement())
+  sentenceId Int
+  wordId     Int
+  position   Int
+  sentence   Sentence @relation(fields: [sentenceId], references: [id], onDelete: Cascade)
+  word       Word     @relation(fields: [wordId], references: [id])
+
+  @@unique([sentenceId, position])
+  @@index([sentenceId])
+  @@index([wordId])
+}

@@ -1,0 +1,298 @@
+<main class="builder-container">
+
+  <header class="page-header">
+
+    <div>
+      <h1>
+        {{ editingSentenceId === null
+          ? 'Sentence Builder'
+          : 'Edit Sentence' }}
+      </h1>
+
+      <p>
+        Select a word type and choose words
+        to build your sentence.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="secondary-button"
+      (click)="viewSavedSentences()">
+
+      Saved Sentences
+
+    </button>
+
+  </header>
+
+
+  @if (loading) {
+
+    <div class="status-message">
+      Loading...
+    </div>
+
+  }
+
+
+  @if (errorMessage) {
+
+    <div
+      class="error-message"
+      role="alert">
+
+      {{ errorMessage }}
+
+    </div>
+
+  }
+
+
+  @if (successMessage) {
+
+    <div
+      class="success-message"
+      role="status">
+
+      {{ successMessage }}
+
+    </div>
+
+  }
+
+
+  <section class="builder-section">
+
+  <h2>
+    1. Select a word type
+  </h2>
+
+  @if (wordTypes.length === 0) {
+
+    <p>
+      No word types are available.
+    </p>
+
+  } @else {
+
+    <div
+      class="word-type-list"
+      role="list">
+
+      @for (
+        wordType of wordTypes;
+        track wordType.id
+      ) {
+
+        <button
+          type="button"
+          class="word-type-button"
+          [class.selected]="
+            selectedWordType?.id === wordType.id
+          "
+          (click)="selectWordType(wordType)">
+
+          {{ wordType.name }}
+
+        </button>
+
+      }
+
+    </div>
+
+  }
+
+</section>
+
+  <section class="builder-section">
+
+    <h2>
+      2. Select a word
+    </h2>
+
+
+    @if (selectedWordType === null) {
+
+      <p class="empty-state">
+        Select a word type first.
+      </p>
+
+    }
+
+
+    @if (
+      selectedWordType !== null &&
+      loadingWords
+    ) {
+
+      <p>
+        Loading words...
+      </p>
+
+    }
+
+
+    @if (
+      selectedWordType !== null &&
+      !loadingWords &&
+      words.length === 0
+    ) {
+
+      <p class="empty-state">
+        No words are available for this type.
+      </p>
+
+    }
+
+
+    <div
+      class="word-list">
+
+      @for (
+        word of words;
+        track word.id
+      ) {
+
+        <button
+          type="button"
+          class="word-button"
+          (click)="addWord(word)">
+
+          {{ word.text }}
+
+        </button>
+
+      }
+
+    </div>
+
+  </section>
+
+
+  <section class="sentence-section">
+
+    <div class="section-header">
+
+      <h2>
+        3. Your sentence
+      </h2>
+
+      <button
+        type="button"
+        class="clear-button"
+        [disabled]="
+          selectedWords.length === 0
+        "
+        (click)="clearSentence()">
+
+        Clear
+
+      </button>
+
+    </div>
+
+
+    @if (selectedWords.length === 0) {
+
+      <div class="sentence-empty">
+
+        Your selected words will appear here.
+
+      </div>
+
+    } @else {
+
+      <div
+        class="selected-word-list"
+        aria-live="polite">
+
+        @for (
+          word of selectedWords;
+          track $index
+        ) {
+
+          <div class="selected-word">
+
+            <span>
+              {{ word.text }}
+            </span>
+
+            <button
+              type="button"
+              class="remove-button"
+              [attr.aria-label]="
+                'Remove ' + word.text
+              "
+              (click)="removeWord($index)">
+
+              ×
+
+            </button>
+
+          </div>
+
+        }
+
+      </div>
+
+
+      <div class="sentence-preview">
+
+        <strong>
+          Preview:
+        </strong>
+
+        {{ sentencePreview }}
+
+      </div>
+
+    }
+
+
+    <div class="action-buttons">
+
+      <button
+        type="button"
+        class="primary-button"
+        [disabled]="
+          saving ||
+          selectedWords.length === 0
+        "
+        (click)="saveSentence()">
+
+        @if (saving) {
+
+          Saving...
+
+        } @else {
+
+          {{
+            editingSentenceId === null
+              ? 'Save Sentence'
+              : 'Update Sentence'
+          }}
+
+        }
+
+      </button>
+
+
+      @if (editingSentenceId !== null) {
+
+        <button
+          type="button"
+          class="secondary-button"
+          (click)="createNewSentence()">
+
+          Create New Sentence
+
+        </button>
+
+      }
+
+    </div>
+
+  </section>
+
+</main>

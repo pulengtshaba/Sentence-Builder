@@ -6,7 +6,7 @@ describe('GET /health/live', () => {
     it('returns a healthy status', async () => {
 
         const response = await request(app)
-            .get('/health/live');
+            .get('/api/health/live');
 
         expect(response.statusCode).toBe(200);
 

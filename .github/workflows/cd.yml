@@ -1,0 +1,330 @@
+name: Continuous Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: production-deployment
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build and deploy to Azure
+    runs-on: ubuntu-latest
+
+    environment:
+      name: production
+
+    env:
+      RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+      CONTAINER_ENV: ${{ vars.AZURE_CONTAINER_ENV }}
+      API_APP: ${{ vars.AZURE_API_APP }}
+      WEB_APP: ${{ vars.AZURE_WEB_APP }}
+      ACR_NAME: ${{ vars.ACR_NAME }}
+      API_REPOSITORY: ${{ vars.API_REPOSITORY }}
+      WEB_REPOSITORY: ${{ vars.WEB_REPOSITORY }}
+
+    steps:
+
+      # ------------------------------------------------------------
+      # 1. Checkout repository
+      # ------------------------------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      # ------------------------------------------------------------
+      # 2. Login to Azure using GitHub OIDC
+      # ------------------------------------------------------------
+      - name: Login to Azure
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # ------------------------------------------------------------
+      # 3. Get the existing API Container App URL
+      # ------------------------------------------------------------
+      - name: Get API URL
+        id: api-url
+        uses: azure/cli@v2
+        env:
+          AZURE_CORE_OUTPUT: none
+        with:
+          azcliversion: latest
+          inlineScript: |
+            API_FQDN=$(az containerapp show \
+              --name "$API_APP" \
+              --resource-group "$RESOURCE_GROUP" \
+              --query "properties.configuration.ingress.fqdn" \
+              --output tsv)
+
+            API_URL="https://${API_FQDN}"
+
+            echo "API URL: ${API_URL}"
+
+            echo "url=${API_URL}" >> "$GITHUB_OUTPUT"
+
+      # ------------------------------------------------------------
+      # 4. Verify Azure deployment context
+      # ------------------------------------------------------------
+      - name: Verify Azure deployment context
+        uses: azure/cli@v2
+        env:
+          AZURE_CORE_OUTPUT: none
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az account show
+            az group show \
+              --name "$RESOURCE_GROUP" \
+              --output table
+
+      # ------------------------------------------------------------
+      # 5. Login to Azure Container Registry
+      # ------------------------------------------------------------
+      - name: Login to Azure Container Registry
+        run: |
+          az acr login --name "$ACR_NAME"
+
+      # ------------------------------------------------------------
+      # 6. Calculate image names
+      # ------------------------------------------------------------
+      - name: Set image variables
+        id: image
+        run: |
+          echo "registry=${ACR_NAME}.azurecr.io" >> "$GITHUB_OUTPUT"
+
+          echo "tag=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+
+          echo "api=${ACR_NAME}.azurecr.io/${API_REPOSITORY}:${GITHUB_SHA}" \
+            >> "$GITHUB_OUTPUT"
+
+          echo "web=${ACR_NAME}.azurecr.io/${WEB_REPOSITORY}:${GITHUB_SHA}" \
+            >> "$GITHUB_OUTPUT"
+
+      # ------------------------------------------------------------
+      # 7. Build API image
+      # ------------------------------------------------------------
+      - name: Build API Docker image
+        uses: docker/build-push-action@v7
+        with:
+          context: ./server
+          file: ./server/Dockerfile
+          push: false
+          tags: ${{ steps.image.outputs.api }}
+
+      # ------------------------------------------------------------
+      # 8. Push API image
+      # ------------------------------------------------------------
+      - name: Push API Docker image
+        run: |
+          docker push "${{ steps.image.outputs.api }}"
+
+      # ------------------------------------------------------------
+      # 9. Build Angular image
+      #
+      # The API URL is injected into the Angular production build.
+      # ------------------------------------------------------------
+      - name: Build frontend Docker image
+        uses: docker/build-push-action@v7
+        with:
+          context: ./client
+          file: ./client/Dockerfile
+          push: false
+          tags: ${{ steps.image.outputs.web }}
+          build-args: |
+            API_URL=${{ steps.api-url.outputs.url }}
+
+      # ------------------------------------------------------------
+      # 10. Push Angular image
+      # ------------------------------------------------------------
+      - name: Push frontend Docker image
+        run: |
+          docker push "${{ steps.image.outputs.web }}"
+
+      # ------------------------------------------------------------
+      # 11. Configure Azure SQL secret
+      # ------------------------------------------------------------
+      - name: Configure API database secret
+        uses: azure/cli@v2
+        env:
+          AZURE_CORE_OUTPUT: none
+          DATABASE_URL: ${{ secrets.AZURE_SQL_CONNECTION_STRING }}
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az containerapp secret set \
+              --name "$API_APP" \
+              --resource-group "$RESOURCE_GROUP" \
+              --secrets "database-url=$DATABASE_URL"
+
+      # ------------------------------------------------------------
+      # 12. Configure DATABASE_URL environment variable
+      # ------------------------------------------------------------
+      - name: Configure API database environment variable
+        uses: azure/cli@v2
+        env:
+          AZURE_CORE_OUTPUT: none
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az containerapp update \
+              --name "$API_APP" \
+              --resource-group "$RESOURCE_GROUP" \
+              --set-env-vars \
+                "DATABASE_URL=secretref:database-url"
+
+      # ------------------------------------------------------------
+      # 13. Deploy API
+      # ------------------------------------------------------------
+      - name: Deploy API Container App
+        uses: azure/cli@v2
+        env:
+          AZURE_CORE_OUTPUT: none
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az containerapp update \
+              --name "$API_APP" \
+              --resource-group "$RESOURCE_GROUP" \
+              --image "${{ steps.image.outputs.api }}"
+
+      # ------------------------------------------------------------
+      # 14. Deploy Angular frontend
+      # ------------------------------------------------------------
+      - name: Deploy frontend Container App
+        uses: azure/cli@v2
+        env:
+          AZURE_CORE_OUTPUT: none
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az containerapp update \
+              --name "$WEB_APP" \
+              --resource-group "$RESOURCE_GROUP" \
+              --image "${{ steps.image.outputs.web }}"
+
+      # ------------------------------------------------------------
+      # 15. Wait for deployment
+      # ------------------------------------------------------------
+      - name: Wait for deployment
+        run: |
+          sleep 20
+
+      # ------------------------------------------------------------
+      # 16. API health check
+      # ------------------------------------------------------------
+      - name: Verify API health
+        run: |
+          API_URL="${{ steps.api-url.outputs.url }}"
+
+          echo "Checking:"
+          echo "${API_URL}/health/live"
+
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            --retry 10 \
+            --retry-delay 5 \
+            --retry-connrefused \
+            "${API_URL}/health/live"
+
+      # ------------------------------------------------------------
+      # 17. Get frontend URL
+      # ------------------------------------------------------------
+      - name: Get frontend URL
+        id: web-url
+        uses: azure/cli@v2
+        env:
+          AZURE_CORE_OUTPUT: none
+        with:
+          azcliversion: latest
+          inlineScript: |
+            WEB_FQDN=$(az containerapp show \
+              --name "$WEB_APP" \
+              --resource-group "$RESOURCE_GROUP" \
+              --query "properties.configuration.ingress.fqdn" \
+              --output tsv)
+
+            WEB_URL="https://${WEB_FQDN}"
+
+            echo "url=${WEB_URL}" >> "$GITHUB_OUTPUT"
+
+      # ------------------------------------------------------------
+      # 18. Frontend smoke test
+      # ------------------------------------------------------------
+      - name: Verify frontend
+        run: |
+          WEB_URL="${{ steps.web-url.outputs.url }}"
+
+          echo "Checking:"
+          echo "${WEB_URL}"
+
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            --retry 10 \
+            --retry-delay 5 \
+            --retry-connrefused \
+            "${WEB_URL}"
+
+      # ------------------------------------------------------------
+      # 19. Display deployment information
+      # ------------------------------------------------------------
+      - name: Display deployment information
+        uses: azure/cli@v2
+        env:
+          AZURE_CORE_OUTPUT: none
+        with:
+          azcliversion: latest
+          inlineScript: |
+            echo "=========================================="
+            echo "Sentence Builder deployment completed"
+            echo "=========================================="
+
+            echo ""
+            echo "API:"
+            az containerapp show \
+              --name "$API_APP" \
+              --resource-group "$RESOURCE_GROUP" \
+              --query "properties.configuration.ingress.fqdn" \
+              --output tsv
+
+            echo ""
+            echo "Web:"
+            az containerapp show \
+              --name "$WEB_APP" \
+              --resource-group "$RESOURCE_GROUP" \
+              --query "properties.configuration.ingress.fqdn" \
+              --output tsv
+
+            echo ""
+            echo "API revision:"
+            az containerapp show \
+              --name "$API_APP" \
+              --resource-group "$RESOURCE_GROUP" \
+              --query "properties.latestRevisionName" \
+              --output tsv
+
+            echo ""
+            echo "Web revision:"
+            az containerapp show \
+              --name "$WEB_APP" \
+              --resource-group "$RESOURCE_GROUP" \
+              --query "properties.latestRevisionName" \
+              --output tsv
+
+            echo ""
+            echo "Image tag:"
+            echo "${GITHUB_SHA}"

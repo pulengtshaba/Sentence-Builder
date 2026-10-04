@@ -1,0 +1,173 @@
+.builder-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.page-header h1 {
+  margin: 0 0 0.5rem;
+}
+
+.page-header p {
+  margin: 0;
+}
+
+.builder-section,
+.sentence-section {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.builder-section h2,
+.sentence-section h2 {
+  margin-top: 0;
+}
+
+.word-type-list,
+.word-list,
+.selected-word-list,
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+button {
+  min-height: 44px;
+  border-radius: 8px;
+  padding: 0.65rem 1rem;
+  cursor: pointer;
+  font: inherit;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.word-type-button,
+.word-button {
+  border: 1px solid #ccc;
+  background: #f7f7f7;
+}
+
+.word-type-button.selected {
+  font-weight: 700;
+  border-width: 2px;
+}
+
+.primary-button {
+  border: none;
+  font-weight: 700;
+}
+
+.secondary-button {
+  border: 1px solid #bbb;
+  background: white;
+}
+
+.clear-button {
+  border: 1px solid #bbb;
+  background: white;
+}
+
+.remove-button {
+  min-height: 32px;
+  width: 32px;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.selected-word {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 999px;
+}
+
+.sentence-preview {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border-radius: 8px;
+  background: #f5f5f5;
+  line-height: 1.6;
+}
+
+.sentence-empty,
+.empty-state {
+  padding: 1rem;
+  border-radius: 8px;
+  background: #f7f7f7;
+}
+
+.error-message,
+.success-message,
+.status-message {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.error-message {
+  border: 1px solid #d00;
+}
+
+.success-message {
+  border: 1px solid #087f23;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+@media (max-width: 600px) {
+
+  .builder-container {
+    padding: 1rem;
+  }
+
+  .page-header,
+  .section-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page-header button {
+    width: 100%;
+  }
+
+  .builder-section,
+  .sentence-section {
+    padding: 1rem;
+  }
+
+  .word-type-button,
+  .word-button {
+    flex: 1 1 100%;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+  }
+
+  .action-buttons button {
+    width: 100%;
+  }
+}

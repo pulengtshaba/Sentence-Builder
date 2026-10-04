@@ -1,0 +1,141 @@
+<main class="saved-container">
+
+  <header class="page-header">
+
+    <div>
+
+      <h1>
+        Saved Sentences
+      </h1>
+
+      <p>
+        Review and edit previously saved sentences.
+      </p>
+
+    </div>
+
+
+    <button
+      type="button"
+      class="primary-button"
+      (click)="createNewSentence()">
+
+      Build New Sentence
+
+    </button>
+
+  </header>
+
+
+  @if (loading) {
+
+    <div class="status-message">
+      Loading saved sentences...
+    </div>
+
+  }
+
+
+  @if (errorMessage) {
+
+    <div
+      class="error-message"
+      role="alert">
+
+      <p>
+        {{ errorMessage }}
+      </p>
+
+      <button
+        type="button"
+        (click)="loadSentences()">
+
+        Try Again
+
+      </button>
+
+    </div>
+
+  }
+
+
+  @if (
+    !loading &&
+    !errorMessage &&
+    sentences.length === 0
+  ) {
+
+    <div class="empty-state">
+
+      <h2>
+        No saved sentences
+      </h2>
+
+      <p>
+        Build and save your first sentence.
+      </p>
+
+      <button
+        type="button"
+        class="primary-button"
+        (click)="createNewSentence()">
+
+        Build Sentence
+
+      </button>
+
+    </div>
+
+  }
+
+
+  @if (
+    !loading &&
+    sentences.length > 0
+  ) {
+
+    <section
+      class="sentence-list"
+      aria-label="Saved sentences">
+
+      @for (
+        sentence of sentences;
+        track sentence.id
+      ) {
+
+        <article class="sentence-card">
+
+          <div class="sentence-content">
+
+            <h2>
+              {{ sentence.text }}
+            </h2>
+
+            <p class="sentence-date">
+
+              Saved:
+              {{ sentence.createdAt | date:'medium' }}
+
+            </p>
+
+          </div>
+
+
+          <button
+            type="button"
+            class="secondary-button"
+            (click)="editSentence(sentence.id)">
+
+            Edit
+
+          </button>
+
+        </article>
+
+      }
+
+    </section>
+
+  }
+
+</main>
