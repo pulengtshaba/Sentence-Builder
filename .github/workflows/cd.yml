@@ -228,7 +228,7 @@ jobs:
           API_URL="${{ steps.api-url.outputs.url }}"
 
           echo "Checking:"
-          echo "${API_URL}/health/live"
+          echo "${API_URL}/api/health/live"
 
           curl \
             --fail \
