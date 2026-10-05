@@ -12,7 +12,7 @@ COPY . .
 # Define the build-time variable
 ARG API_URL
 
-RUN sed -i "s|__API_URL__|${API_URL}|g" src/environments/environment.ts
+RUN sed -i "s|__API_URL__|${API_URL}|g" src/environments/environment.prod.ts
 
 RUN npm run build
 
