@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/pulengtshaba/Sentence-Builder/actions/workflows/ci.yml/badge.svg)](https://github.com/pulengtshaba/Sentence-Builder/actions/workflows/ci.yml)
 
+[![codecov](https://codecov.io/github/pulengtshaba/Sentence-Builder/graph/badge.svg?token=NwUujBK8gW)](https://codecov.io/github/pulengtshaba/Sentence-Builder)
 
  [![Continuous Deployment](https://github.com/pulengtshaba/Sentence-Builder/actions/workflows/cd.yml/badge.svg)](https://github.com/pulengtshaba/Sentence-Builder/actions/workflows/cd.yml)
 
