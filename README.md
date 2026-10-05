@@ -1,6 +1,9 @@
 # Sentence Builder 
 
- 
+[![CI](https://github.com/pulengtshaba/Sentence-Builder/actions/workflows/ci.yml/badge.svg)](https://github.com/pulengtshaba/Sentence-Builder/actions/workflows/ci.yml)
+
+
+ [![Continuous Deployment](https://github.com/pulengtshaba/Sentence-Builder/actions/workflows/cd.yml/badge.svg)](https://github.com/pulengtshaba/Sentence-Builder/actions/workflows/cd.yml)
 
 A full-stack web application that allows users to construct 
 
